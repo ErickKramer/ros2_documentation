@@ -5,59 +5,61 @@
 
 .. _UsingROS2LaunchForLargeProjects:
 
-Managing large projects
-=======================
+Administrar proyectos grandes
+=============================
 
-**Goal:** Learn best practices of managing large projects using ROS 2 launch files.
+**Objetivo:** Aprender las prácticas recomendadas para administrar proyectos grandes utilizando ficheros de launch de ROS 2.
 
-**Tutorial level:** Intermediate
+**Nivel del tutorial:** Intermedio
 
 **Time:** 20 minutes
+**Tiempo:** 20 minutos
 
-.. contents:: Contents
+.. contents:: Contenido
    :depth: 3
    :local:
 
-Background
-----------
-
-This tutorial describes some tips for writing launch files for large projects.
-The focus is on how to structure launch files so they may be reused as much as possible in different situations.
-Additionally, it covers usage examples of different ROS 2 launch tools, like parameters, YAML files, remappings, namespaces, default arguments, and RViz configs.
-
-Prerequisites
--------------
-
-This tutorial uses the :doc:`turtlesim <../../Beginner-CLI-Tools/Introducing-Turtlesim/Introducing-Turtlesim>` and :doc:`turtle_tf2_py <../Tf2/Introduction-To-Tf2>` packages.
-This tutorial also assumes you have :doc:`created a new package <../../Beginner-Client-Libraries/Creating-Your-First-ROS2-Package>` of build type ``ament_python`` called ``launch_tutorial``.
-
-Introduction
+Antecedentes
 ------------
 
-Large applications on a robot typically involve several interconnected nodes, each of which can have many parameters.
-Simulation of multiple turtles in the turtle simulator can serve as a good example.
-The turtle simulation consists of multiple turtle nodes, the world configuration, and the TF broadcaster and listener nodes.
-Between all of the nodes, there are a large number of ROS parameters that affect the behavior and appearance of these nodes.
-ROS 2 launch files allow us to start all nodes and set corresponding parameters in one place.
-By the end of a tutorial, you will build the ``launch_turtlesim.launch.py`` launch file in the ``launch_tutorial`` package.
-This launch file will bring up different nodes responsible for the simulation of two turtlesim simulations, starting TF broadcasters and listener, loading parameters, and launching an RViz configuration.
-In this tutorial, we'll go over this launch file and all related features used.
+Este tutorial describe algunos consejos para escribir ficheros de launch para proyectos grandes.
+El enfoque esta en como estructurar ficheros de launch de tal forma de que puedan ser reutilizados tanto como sea posible en situaciones diferentes.
+Adicionalmente, cubre ejemplos de uso de las diferentes herramientas de launch de ROS 2, como parámetros, ficheros YAML, remappings, namespaces, argumentos por defecto y configuraciones de RVIZ.
 
-Writing launch files
---------------------
+Prerequisitos
+-------------
 
-1 Top-level organization
-^^^^^^^^^^^^^^^^^^^^^^^^
+Este tutorial utiliza los paquetes :doc:`turtlesim <../../Beginner-CLI-Tools/Introducing-Turtlesim/Introducing-Turtlesim>` y :doc:`turtle_tf2_py <../Tf2/Introduction-To-Tf2>`.
+Este tutorial también asume que tu has :doc:`creado un nuevo paquete <../../Beginner-Client-Libraries/Creating-Your-First-ROS2-Package>` de tipo de compilación ``ament_python`` llamado ``launch_tutorial``.
 
-One of the aims in the process of writing launch files should be making them as reusable as possible.
-This could be done by clustering related nodes and configurations into separate launch files.
-Afterwards, a top-level launch file dedicated to a specific configuration could be written.
-This would allow moving between identical robots to be done without changing the launch files at all.
-Even a change such as moving from a real robot to a simulated one can be done with only a few changes.
+Introducción
+------------
 
-We will now go over the top-level launch file structure that makes this possible.
-Firstly, we will create a launch file that will call separate launch files.
-To do this, let's create a ``launch_turtlesim.launch.py`` file in the ``/launch`` folder of our ``launch_tutorial`` package.
+Aplicaciones grandes en un robot suelen implicar varios nodos interconectados, cada uno de los cuales puede tener muchos parámetros.
+Las simulaciones de múltiples tortugas en el simulador de la tortuga puede servir como un buen ejemplo.
+La simulación de la tortuga consiste de múltiples nodos de tortuga, la configuración del mundo, y el TF broadcaster y los nodos listener.
+
+Entre todos los nodos, hay un gran numero de parámetros de ROS que afectan el comportamiento y la apariencia de estos nodos.
+Los ficheros de launch de ROS 2 nos permiten empezar todos los nodos y configurar los parámetros correspondientes en un solo lugar.
+Para el final del tutorial, tu compilarás el fichero de launch ``launch_turtlesim.launch.py`` en el paquete ``launch_tutorial``
+Este fichero de launch inicializará diferentes nodos responsables de la simulación de dos turtlesim, así como de los TF broadcasters y el listener, los parámetros de carga y una configuración de RVIZ.
+En este tutorial, cubriremos este fichero de launch y todas las características utilizadas.
+
+Escribir ficheros de launch
+---------------------------
+
+1 Organización del nivel superior
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Uno de los objetivos en el proceso de escribir ficheros launch debe de ser hacerlos lo mas reutilizables posible.
+Esto se puede hacer agrupando nodos y configuraciones relacionados en ficheros de launch separados.
+Posteriormente, podría escribirse un fichero de launch de nivel superior dedicado específica.
+Esto permitiría cambiar entre robots idénticos sin cambiar los ficheros de launch en absoluto.
+Incluso un cambio como pasar de un robot real a uno simulado puede hacerse con solo unos pocos cambios.
+
+A continuación repasaremos la estructura de un fichero de lanzamiento de nivel superior que hace esto posible.
+Primeramente, crearemos un fichero de launch que llamara ficheros de launch separados.
+Para hacer esto, vamos a crear un fichero ``launch_turtlesim.launch.py`` en el directorio ``/launch`` del paquete ``launch_tutorial``.
 
 .. code-block:: Python
 
@@ -112,25 +114,25 @@ To do this, let's create a ``launch_turtlesim.launch.py`` file in the ``/launch`
          rviz_node
       ])
 
-This launch file includes a set of other launch files.
-Each of these included launch files contains nodes, parameters, and possibly, nested includes, which pertain to one part of the system.
-To be exact, we launch two turtlesim simulation worlds, TF broadcaster, TF listener, mimic, fixed frame broadcaster, and RViz nodes.
+Este fichero de launch incluye un conjunto de otros ficheros launch
+Cada uno de estos ficheros de launch incluidos contiene nodos, parámetros y, posiblemente inclusiones anidadas, que pertenecen a una parte del sistema.
+Para ser exactos, nosotros hacemos launch a nodos con dos mundos simulados de turtlesim, TF broadcaster, TF listener, mimic, broadcaster con frames fijos y Rviz.
 
-.. note:: Design Tip: Top-level launch files should be short, consist of includes to other files corresponding to subcomponents of the application, and commonly changed parameters.
+.. note:: Consejo de diseño: Ficheros de launch de nivel superior deben ser cortos, consistir de inclusiones de otros ficheros correspondientes a los subcomponentes de la apliación, y comunmente parámetros cambiados.
 
-Writing launch files in the following manner makes it easy to swap out one piece of the system, as we'll see later.
-However, there are cases when some nodes or launch files have to be launched separately due to performance and usage reasons.
+Escribir ficheros de launch de la siguiente manera hace mas fácil el intercambio una pieza del sistema, como lo veremos mas adelante.
+Sin embargo, hay casos donde algunos nodos o ficheros de launch tienen que ser empezados separadamente debido a razones de uso y rendimiento.
 
-.. note:: Design tip: Be aware of the tradeoffs when deciding how many top-level launch files your application requires.
+.. note:: Consejo de diseño: Ten en cuenta las ventanas y desventajas a la hora de decidir cuantos archivos de lanzamiento de nivel superior requiere tu aplicación.
 
-2 Parameters
+2 Parámetros
 ^^^^^^^^^^^^
 
-2.1 Setting parameters in the launch file
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2.1 Configurar parámetros en un fichero de launch
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-We will begin by writing a launch file that will start our first turtlesim simulation.
-First, create a new file called ``turtlesim_world_1.launch.py``.
+Empezaremos escribiendo un fichero de launch que inicializará nuestra primer simulación de turtlesim.
+Primero, crea un nuevo fichero llamado ``turtlesim_world_1.launch.py``.
 
 .. code-block:: Python
 
@@ -168,13 +170,13 @@ First, create a new file called ``turtlesim_world_1.launch.py``.
          ),
       ])
 
-This launch file starts the ``turtlesim_node`` node, which starts the turtlesim simulation, with simulation configuration parameters that are defined and passed to the nodes.
+Este fichero de launch empieza el nodo ``turtlesim_node``, el cual empieza la simulación turtlesim, con los parámetros de configuración de la simulación que son definidos y pasados a los nodos.
 
-2.2 Loading parameters from YAML file
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2.2 Cargar parámetros de un fichero YAML
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-In the second launch, we will start a second turtlesim simulation with a different configuration.
-Now create a ``turtlesim_world_2.launch.py`` file.
+En el segundo launch, empezaremos una segunda simulación de turtlesim con diferentes configuraciones.
+Ahora crea un fichero ``turtlesim_world_2.launch.py``.
 
 .. code-block:: Python
 
@@ -203,12 +205,12 @@ Now create a ``turtlesim_world_2.launch.py`` file.
          )
       ])
 
-This launch file will launch the same ``turtlesim_node`` with parameter values that are loaded directly from the YAML configuration file.
-Defining arguments and parameters in YAML files make it easy to store and load a large number of variables.
-In addition, YAML files can be easily exported from the current ``ros2 param`` list.
-To learn how to do that, refer to the :doc:`Understand parameters <../../Beginner-CLI-Tools/Understanding-ROS2-Parameters/Understanding-ROS2-Parameters>` tutorial.
+Este fichero launch empezará el mismo nodo ``turtlesim_node`` con parámetros cuyos valores son cargados directamente desde un fichero de configuración YAML.
+Definir argumentos y parámetros en ficheros YAML hace mas fácil el almacenar y cargar un numero grande de variables.
+Además, ficheros YAML pueden ser exportados fácilmente desde la lista actual de ``ros2 param``.
+Para aprender como hace esto, consulta el tutorial :doc:`Entender parámetros <../../Beginner-CLI-Tools/Understanding-ROS2-Parameters/Understanding-ROS2-Parameters>`.
 
-Let's now create a configuration file, ``turtlesim.yaml``, in the ``/config`` folder of our package, which will be loaded by our launch file.
+Vamos a ahora a crear un fichero de configuración ``turtlesim.yaml``, en el directorio ``/config`` de nuestro paquete, el cual será cargado por nuestro fichero de launch.
 
 .. code-block:: YAML
 
@@ -218,19 +220,19 @@ Let's now create a configuration file, ``turtlesim.yaml``, in the ``/config`` fo
          background_g: 86
          background_r: 150
 
-If we now start the ``turtlesim_world_2.launch.py`` launch file, we will start the ``turtlesim_node`` with preconfigured background colors.
+Si ahora nosotros empezamos el fichero de launch ``turtlesim_world_2.launch.py``, empezaremos el ``turtlesim_node`` con los colores de fondo pre-configurados.
 
-To learn more about using parameters and using YAML files, take a look at the :doc:`Understand parameters <../../Beginner-CLI-Tools/Understanding-ROS2-Parameters/Understanding-ROS2-Parameters>` tutorial.
+Para aprender mas acerca de como usar parametros y ficheros YAML, revisa el tutorual :doc:`Entender parámetros <../../Beginner-CLI-Tools/Understanding-ROS2-Parameters/Understanding-ROS2-Parameters>`.
 
-2.3 Using wildcards in YAML files
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2.3 Usar wildcards en ficheros YAML
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-There are cases when we want to set the same parameters in more than one node.
-These nodes could have different namespaces or names but still have the same parameters.
-Defining separate YAML files that explicitly define namespaces and node names is not efficient.
-A solution is to use wildcard characters, which act as substitutions for unknown characters in a text value, to apply parameters to several different nodes.
+Hay casos cuando nosotros queremos configurar los mismos parametros en mas de un nodo.
+Estos nodos pueden tener diferentes namespaces o nombres, pero aun así tener los mismos parámetros.
+Definir ficheros YAML separados para explícitamente definir namespaces y nombres para los nodos no es eficiente.
+Una solución es usar caracteres wildcard, los cuales actual como substituciones para caracteres desconocidos en un valor de texto, para aplicar parámetros a diferentes nodos.
 
-Now let's create a new ``turtlesim_world_3.launch.py`` file similar to ``turtlesim_world_2.launch.py`` to include one more ``turtlesim_node`` node.
+Ahora vamos a crear un nuevo fichero ``turtlesim_world_3.launch.py`` similar a ``turtlesim_world_2.launch.py`` para incluir un nodo mas de ``turtlesim_node``.
 
 .. code-block:: Python
 
@@ -243,8 +245,8 @@ Now let's create a new ``turtlesim_world_3.launch.py`` file similar to ``turtles
       parameters=[config]
    )
 
-Loading the same YAML file, however, will not affect the appearance of the third turtlesim world.
-The reason is that its parameters are stored under another namespace as shown below:
+Cargar el mismo fichero YAML, sin embargo, no afectara la aparienca del tercer mundo de turtlesim.
+La razón es que sus parámetros están almacenos dentro de otro namespace, como se muestra abajo:
 
 .. code-block:: console
 
@@ -253,10 +255,10 @@ The reason is that its parameters are stored under another namespace as shown be
       background_g
       background_r
 
-Therefore, instead of creating a new configuration for the same node that use the same parameters, we can use wildcards syntax.
-``/**`` will assign all the parameters in every node, despite differences in node names and namespaces.
+Por lo tanto, en lugar de crear una nueva configuración para el mismo nodo que usa los mismos parámetros, nosotros usaremos la sintaxis de wildcards.
+``/**`` asignará todos los parametros en cada nodo, a pesar de los diferentes nombres y namespaces.
 
-We will now update the ``turtlesim.yaml``, in the ``/config`` folder in the following manner:
+Ahora actualizaremos el ``turtlesim.yaml``, en el directorio ``/config`` de la siguiente manera:
 
 .. code-block:: YAML
 
@@ -266,8 +268,8 @@ We will now update the ``turtlesim.yaml``, in the ``/config`` folder in the foll
          background_g: 86
          background_r: 150
 
-Now include the ``turtlesim_world_3.launch.py`` launch description in our main launch file.
-Using that configuration file in our launch descriptions will assign ``background_b``, ``background_g``, and ``background_r`` parameters to specified values in ``turtlesim3/sim`` and ``turtlesim2/sim`` nodes.
+Ahora incluye la descripción de launch de ``turtlesim_world_3.launch.py`` en nuestro fichero de launch principal.
+Usar ese fichero de configuración en nuestras descripciones de launch asignará los parámetros ``background_b``, ``background_g`` y ``background_r`` a los valores especificados en los nodos ``turtlesim3/sim`` y ``turtlesim2/sim``.
 
 3 Namespaces
 ^^^^^^^^^^^^
